@@ -1,14 +1,12 @@
 package carsharing;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import javax.sql.RowSet;
+import java.sql.*;
+
+import static carsharing.Config.*;
 
 
 public class DBManager {
-    static final String JDBC_DRIVER = "org.h2.Driver";
-    static final String DB_FOLDER = "jdbc:h2:./src/carsharing/db/";
 
     private Connection connection = null;
     private String dbFileName;
@@ -18,19 +16,21 @@ public class DBManager {
     }
 
     void connect() {
+
         try {
             // Register JDBC driver
             Class.forName(JDBC_DRIVER);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
 
+        try {
             // Open a connection
             System.out.println("Connecting to database " + DB_FOLDER + dbFileName + "...");
             connection = DriverManager.getConnection(DB_FOLDER + dbFileName);
-            connection.setAutoCommit(true);
-        } catch(SQLException se) {
+            //connection.setAutoCommit(true);
+        } catch(SQLException e) {
             //Handle errors for JDBC
-            se.printStackTrace();
-        } catch(Exception e) {
-            //Handle errors for Class.forName
             e.printStackTrace();
         }
     }
@@ -39,12 +39,8 @@ public class DBManager {
         try {
             connection.close();
         } catch (SQLException e) {
-            try {
-                if(connection!=null) connection.close();
-            } catch(SQLException se){
-                se.printStackTrace();
-            } //end finally try
-        }
+            e.printStackTrace();
+        } //end finally try
         System.out.println("Goodbye!");
 
     }
@@ -66,4 +62,24 @@ public class DBManager {
         } // nothing we can do
 
     }
+    ResultSet executeQuery(String sql) {
+        Statement statement = null;
+        ResultSet resultSet = null;
+        try {
+            // Execute a query
+            System.out.println("Executing query in given database...");
+            statement = connection.createStatement();
+            resultSet = statement.executeQuery(sql);
+            System.out.println("Created table in given database...");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        try {
+            if (statement != null) statement.close();
+        } catch (SQLException se2) {
+
+        }
+        return resultSet;
+    }
+
 }
