@@ -4,13 +4,14 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static carsharing.Config.*;
+import static carsharing.Config.TBL_CAR_NAME;
+import static carsharing.Config.TBL_COMPANY_NAME;
 
-public class CompanyDao implements Dao<Company, Integer> {
+public class CarDao implements Dao<Car, Integer> {
 
     private String dbFileName;
 
-    public CompanyDao(String dbFileName) {
+    public CarDao(String dbFileName) {
         this.dbFileName = dbFileName;
         Connection connection = null;
         Statement statement = null;
@@ -18,13 +19,18 @@ public class CompanyDao implements Dao<Company, Integer> {
             connection = DriverManager.getConnection(dbFileName);
             // Execute a query
             statement = connection.createStatement();
-            String sql =  "CREATE TABLE IF NOT EXISTS " + TBL_COMPANY_NAME +
+
+            String sql =  "CREATE TABLE IF NOT EXISTS " + TBL_CAR_NAME +
                     " (ID INT NOT NULL AUTO_INCREMENT," +
                     " NAME VARCHAR(255) UNIQUE NOT NULL," +
+                    " COMPANY_ID INT NOT NULL," +
+                    " CONSTRAINT FK_COMPANY FOREIGN KEY (COMPANY_ID)" +
+                    " REFERENCES " + TBL_COMPANY_NAME + "(ID), "+
                     " PRIMARY KEY (ID));";
+
             statement.executeUpdate(sql);
 
-            sql =  "ALTER TABLE " + TBL_COMPANY_NAME + " ALTER COLUMN id RESTART WITH 1;";
+            sql =  "ALTER TABLE " + TBL_CAR_NAME + " ALTER COLUMN id RESTART WITH 1;";
             statement.executeUpdate(sql);
 
         } catch (SQLException e) {
@@ -48,22 +54,21 @@ public class CompanyDao implements Dao<Company, Integer> {
         }
     }
 
-    @Override
-    public List<Company> getAll() {
+    //@Override
+    public List<Car> getAllById(int company_id) {
         Connection connection = null;
         Statement statement = null;
         ResultSet resultSet = null;
-        List<Company> companies = new ArrayList<>();
+        List<Car> cars = new ArrayList<>();
         try {
             connection = DriverManager.getConnection(dbFileName);
             connection.setAutoCommit(true);
             // Execute a query
             statement = connection.createStatement();
-            String sql =  String.format("SELECT * FROM %s;", TBL_COMPANY_NAME);
+            String sql =  String.format("SELECT * FROM %s WHERE company_id=%d;", TBL_CAR_NAME, company_id);
             resultSet = statement.executeQuery(sql);
             while (resultSet.next()) {
-//                companies.add(new Company(resultSet.getString("NAME") + " / " + resultSet.getInt("ID")));
-                companies.add(new Company(resultSet.getString("NAME")));
+                cars.add(new Car(resultSet.getString("NAME"), resultSet.getInt("COMPANY_ID")));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -84,16 +89,21 @@ public class CompanyDao implements Dao<Company, Integer> {
                 }
             }
         }
-        return companies;
+        return cars;
     }
 
     @Override
-    public Company get(Integer i) {
-        return new Company("test");
+    public List<Car> getAll() {
+        return null;
     }
 
     @Override
-    public void update(Company company) {
+    public Car get(Integer i) {
+        return new Car("test", 1);
+    }
+
+    @Override
+    public void update(Car car) {
         Connection connection = null;
         Statement statement = null;
         try {
@@ -101,8 +111,8 @@ public class CompanyDao implements Dao<Company, Integer> {
             connection.setAutoCommit(true);
             // Execute a query
             statement = connection.createStatement();
-            String sql =  String.format("INSERT INTO %s (NAME) " +
-                    "VALUES ('%s');", TBL_COMPANY_NAME, company.getName());
+            String sql =  String.format("INSERT INTO %s (NAME, COMPANY_ID) " +
+                    "VALUES ('%s', %d);", TBL_CAR_NAME, car.getName(), car.getCompanyId());
             statement.executeUpdate(sql);
 
         } catch (SQLException e) {
@@ -128,7 +138,7 @@ public class CompanyDao implements Dao<Company, Integer> {
     }
 
     @Override
-    public void del(Company company) {
+    public void del(Car car) {
 
     }
 }

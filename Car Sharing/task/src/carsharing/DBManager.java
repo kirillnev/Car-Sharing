@@ -44,42 +44,4 @@ public class DBManager {
         System.out.println("Goodbye!");
 
     }
-
-    void executeUpdate(String sql){
-        Statement statement = null;
-        try {
-            // Execute a query
-            System.out.println("Executing query in given database...");
-            statement = connection.createStatement();
-            statement.executeUpdate(sql);
-            System.out.println("Created table in given database...");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        try{
-            if(statement!=null) statement.close();
-        } catch(SQLException se2) {
-        } // nothing we can do
-
-    }
-    ResultSet executeQuery(String sql) {
-        Statement statement = null;
-        ResultSet resultSet = null;
-        try {
-            // Execute a query
-            System.out.println("Executing query in given database...");
-            statement = connection.createStatement();
-            resultSet = statement.executeQuery(sql);
-            System.out.println("Created table in given database...");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        try {
-            if (statement != null) statement.close();
-        } catch (SQLException se2) {
-
-        }
-        return resultSet;
-    }
-
 }

@@ -555,6 +555,317 @@ files:
         }
     }
   learner_created: false
+- name: src/carsharing/DBManager.java
+  visible: true
+  text: |
+    package carsharing;
+
+    import javax.sql.RowSet;
+    import java.sql.*;
+
+    import static carsharing.Config.*;
+
+
+    public class DBManager {
+
+        private Connection connection = null;
+        private String dbFileName;
+
+        public DBManager (String dbFileName) {
+            this.dbFileName = dbFileName;
+        }
+
+        void connect() {
+
+            try {
+                // Register JDBC driver
+                Class.forName(JDBC_DRIVER);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                // Open a connection
+                System.out.println("Connecting to database " + DB_FOLDER + dbFileName + "...");
+                connection = DriverManager.getConnection(DB_FOLDER + dbFileName);
+                //connection.setAutoCommit(true);
+            } catch(SQLException e) {
+                //Handle errors for JDBC
+                e.printStackTrace();
+            }
+        }
+
+        void close() {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } //end finally try
+            System.out.println("Goodbye!");
+
+        }
+
+        void executeUpdate(String sql){
+            Statement statement = null;
+            try {
+                // Execute a query
+                System.out.println("Executing query in given database...");
+                statement = connection.createStatement();
+                statement.executeUpdate(sql);
+                System.out.println("Created table in given database...");
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try{
+                if(statement!=null) statement.close();
+            } catch(SQLException se2) {
+            } // nothing we can do
+
+        }
+        ResultSet executeQuery(String sql) {
+            Statement statement = null;
+            ResultSet resultSet = null;
+            try {
+                // Execute a query
+                System.out.println("Executing query in given database...");
+                statement = connection.createStatement();
+                resultSet = statement.executeQuery(sql);
+                System.out.println("Created table in given database...");
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (statement != null) statement.close();
+            } catch (SQLException se2) {
+
+            }
+            return resultSet;
+        }
+
+    }
+  learner_created: true
+- name: src/carsharing/Config.java
+  visible: true
+  text: |
+    package carsharing;
+
+    public class Config {
+        public static final String DEFAULT_DB_FILE_NAME = "carsharing";
+        public static final String JDBC_DRIVER = "org.h2.Driver";
+        public static final String DB_FOLDER = "jdbc:h2:./src/carsharing/db/";
+        public static final String TBL_NAME = "COMPANY";
+    }
+  learner_created: true
+- name: src/carsharing/dao/Dao.java
+  visible: true
+  text: |
+    package carsharing.dao;
+
+    import java.util.List;
+
+    public interface Dao<E, K> {
+        public List<E> getAll();
+        public E get(K k);
+        public void update(E e);
+        public void del(E e);
+    }
+  learner_created: true
+- name: src/carsharing/dao/CompanyDao.java
+  visible: true
+  text: |
+    package carsharing.dao;
+
+    import carsharing.DBManager;
+
+    import java.sql.*;
+    import java.util.ArrayList;
+    import java.util.List;
+
+    import static carsharing.Config.*;
+
+    public class CompanyDao implements Dao<Company, Integer> {
+
+        private String dbFileName;
+
+        public CompanyDao(String dbFileName) {
+            this.dbFileName = dbFileName;
+            Connection connection = null;
+            Statement statement = null;
+            try {
+                connection = DriverManager.getConnection(dbFileName);
+                // Execute a query
+                statement = connection.createStatement();
+                String sql =  "CREATE TABLE IF NOT EXISTS " + TBL_NAME +
+                        " (ID INTEGER NOT NULL AUTO_INCREMENT, " +
+                        " NAME VARCHAR(255) UNIQUE NOT NULL, " +
+                        " PRIMARY KEY ( ID ));";
+                statement.executeUpdate(sql);
+
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            } finally {
+                //Clean-up environment
+                if(connection != null) {
+                    try {
+                        connection.close();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                if(statement != null) {
+                    try {
+                        statement.close();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
+
+        @Override
+        public List<Company> getAll() {
+            Connection connection = null;
+            Statement statement = null;
+            ResultSet resultSet = null;
+            List<Company> companies = new ArrayList<>();
+            try {
+                connection = DriverManager.getConnection(dbFileName);
+                connection.setAutoCommit(true);
+                // Execute a query
+                statement = connection.createStatement();
+                String sql =  String.format("SELECT * FROM %s;", TBL_NAME);
+                resultSet = statement.executeQuery(sql);
+                while (resultSet.next()) {
+                    companies.add(new Company(resultSet.getString("NAME")));
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            } finally {
+                //Clean-up environment
+                if(connection != null) {
+                    try {
+                        connection.close();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                if(statement != null) {
+                    try {
+                        statement.close();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+            return companies;
+        }
+
+        @Override
+        public Company get(Integer i) {
+            return new Company("test");
+        }
+
+        @Override
+        public void update(Company company) {
+            Connection connection = null;
+            Statement statement = null;
+            try {
+                connection = DriverManager.getConnection(dbFileName);
+                connection.setAutoCommit(true);
+                // Execute a query
+                statement = connection.createStatement();
+                String sql =  String.format("INSERT INTO %s (NAME) " +
+                        "VALUES ('%s');", TBL_NAME, company.getName());
+                statement.executeUpdate(sql);
+
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            } finally {
+                //Clean-up environment
+                if(connection != null) {
+                    try {
+                        connection.close();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                if(statement != null) {
+                    try {
+                        statement.close();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+
+        }
+
+        @Override
+        public void del(Company company) {
+
+        }
+    }
+  learner_created: true
+- name: src/carsharing/Args.java
+  visible: true
+  text: |
+    package carsharing;
+
+    import com.beust.jcommander.JCommander;
+    import com.beust.jcommander.Parameter;
+
+    public class Args {
+        @Parameter(names = {"-databaseFileName"})
+        String dbFileName;
+
+        public String getDbFileName() {
+            return dbFileName;
+        }
+
+    }
+  learner_created: true
+- name: src/carsharing/dao/Company.java
+  visible: true
+  text: |
+    package carsharing.dao;
+
+    public class Company {
+        private  int id;
+        private String name;
+
+        public Company(String name) {
+            this.name = name;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+  learner_created: true
+- name: src/carsharing/dao/CarDao.java
+  visible: true
+  learner_created: true
+- name: src/carsharing/dao/Car.java
+  visible: true
+  learner_created: true
+- name: src/carsharing/db/carsharing.trace.db
+  visible: true
+  learner_created: true
 feedback_link: https://hyperskill.org/learn/step/11503#comment
-status: Unchecked
-record: -1
+status: Solved
+feedback:
+  message: Congratulations!
+  time: "Tue, 06 Dec 2022 11:49:29 UTC"
+record: 3
