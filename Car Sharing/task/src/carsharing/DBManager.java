@@ -35,13 +35,4 @@ public class DBManager {
         }
     }
 
-    void close() {
-        try {
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } //end finally try
-        System.out.println("Goodbye!");
-
-    }
 }

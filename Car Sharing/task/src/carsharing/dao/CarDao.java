@@ -54,8 +54,7 @@ public class CarDao implements Dao<Car, Integer> {
         }
     }
 
-    //@Override
-    public List<Car> getAllById(int company_id) {
+    public List<Car> getAllByCompany(int company_id) {
         Connection connection = null;
         Statement statement = null;
         ResultSet resultSet = null;
@@ -68,7 +67,7 @@ public class CarDao implements Dao<Car, Integer> {
             String sql =  String.format("SELECT * FROM %s WHERE company_id=%d;", TBL_CAR_NAME, company_id);
             resultSet = statement.executeQuery(sql);
             while (resultSet.next()) {
-                cars.add(new Car(resultSet.getString("NAME"), resultSet.getInt("COMPANY_ID")));
+                cars.add(new Car(resultSet.getInt("ID"), resultSet.getString("NAME"), resultSet.getInt("COMPANY_ID")));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -98,12 +97,45 @@ public class CarDao implements Dao<Car, Integer> {
     }
 
     @Override
-    public Car get(Integer i) {
-        return new Car("test", 1);
+    public Car get(Integer id) {
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        Car car = null;
+        try {
+            connection = DriverManager.getConnection(dbFileName);
+            connection.setAutoCommit(true);
+            // Execute a query
+            statement = connection.createStatement();
+            String sql =  String.format("SELECT * FROM %s WHERE id=%d;", TBL_CAR_NAME, id);
+            resultSet = statement.executeQuery(sql);
+            while (resultSet.next()) {
+                car = new Car(resultSet.getInt("ID"), resultSet.getString("NAME"), resultSet.getInt("COMPANY_ID"));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            //Clean-up environment
+            if(connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            if(statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return car;
     }
 
     @Override
-    public void update(Car car) {
+    public void add(Car car) {
         Connection connection = null;
         Statement statement = null;
         try {
@@ -138,7 +170,8 @@ public class CarDao implements Dao<Car, Integer> {
     }
 
     @Override
-    public void del(Car car) {
+    public void update(Car car) {
 
     }
+
 }

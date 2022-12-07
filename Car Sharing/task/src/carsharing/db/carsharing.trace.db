@@ -1,0 +1,3 @@
+2022-12-06 13:37:11 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "CAR" not found; SQL statement:
+ALTER TABLE CAR ALTER COLUMN id RESTART WITH 1; [42102-200]

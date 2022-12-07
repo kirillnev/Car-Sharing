@@ -62,8 +62,7 @@ public class CompanyDao implements Dao<Company, Integer> {
             String sql =  String.format("SELECT * FROM %s;", TBL_COMPANY_NAME);
             resultSet = statement.executeQuery(sql);
             while (resultSet.next()) {
-//                companies.add(new Company(resultSet.getString("NAME") + " / " + resultSet.getInt("ID")));
-                companies.add(new Company(resultSet.getString("NAME")));
+                companies.add(new Company(resultSet.getInt("ID"), resultSet.getString("NAME")));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -88,12 +87,45 @@ public class CompanyDao implements Dao<Company, Integer> {
     }
 
     @Override
-    public Company get(Integer i) {
-        return new Company("test");
+    public Company get(Integer id) {
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        Company company = null;
+        try {
+            connection = DriverManager.getConnection(dbFileName);
+            connection.setAutoCommit(true);
+            // Execute a query
+            statement = connection.createStatement();
+            String sql =  String.format("SELECT * FROM %s WHERE id=%d;", TBL_COMPANY_NAME, id);
+            resultSet = statement.executeQuery(sql);
+            while (resultSet.next()) {
+                company = new Company(resultSet.getInt("ID"), resultSet.getString("NAME"));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            //Clean-up environment
+            if(connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            if(statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return company;
     }
 
     @Override
-    public void update(Company company) {
+    public void add(Company company) {
         Connection connection = null;
         Statement statement = null;
         try {
@@ -128,7 +160,8 @@ public class CompanyDao implements Dao<Company, Integer> {
     }
 
     @Override
-    public void del(Company company) {
+    public void update(Company company) {
 
     }
+
 }

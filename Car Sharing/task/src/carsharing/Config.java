@@ -6,4 +6,6 @@ public class Config {
     public static final String DB_FOLDER = "jdbc:h2:./src/carsharing/db/";
     public static final String TBL_COMPANY_NAME = "COMPANY";
     public static final String TBL_CAR_NAME = "CAR";
+    public static final String TBL_CUSTOMER_NAME = "CUSTOMER";
+
 }
